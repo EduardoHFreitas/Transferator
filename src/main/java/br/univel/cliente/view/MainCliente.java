@@ -28,10 +28,11 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import br.univel.common.Arquivo;
-import br.univel.common.Cliente;
-import br.univel.common.IServer;
-import br.univel.common.TipoFiltro;
+import br.univel.jshare.comum.Arquivo;
+import br.univel.jshare.comum.Cliente;
+import br.univel.jshare.comum.IServer;
+import br.univel.jshare.comum.TipoFiltro;
+
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
@@ -44,25 +45,23 @@ public class MainCliente extends JFrame implements Runnable, IServer {
 	private JTextField tfIPServidor;
 	private IServer servidor;
 	private Registry registry;
-	private Cliente cliente;
 	private JTextField tfBuscar;
 	private JTextField tfFiltro;
 
 	private Thread threadMonitor;
-	private String diretorio;
 	private JNumberField nfPorta;
 	private JButton btnDesconectar;
 	private JButton btnConectar;
 	private JTable tabelaArquivos;
 
 	private Cliente mySelf;
-	
+
 	public MainCliente() {
 
 		this.setSize(600, 400);
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		this.setResizable(false);
-		
+
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[] { 600, 0 };
 		gridBagLayout.rowHeights = new int[] { 70, 0, 0 };
@@ -111,10 +110,10 @@ public class MainCliente extends JFrame implements Runnable, IServer {
 						JOptionPane.showMessageDialog(null, "Porta Invalida!");
 						return;
 					}
-					
+
 					InetAddress IP;
 					String IPString = null;
-					
+
 					try {
 						IP = InetAddress.getLocalHost();
 						IPString = IP.getHostAddress();
@@ -136,11 +135,7 @@ public class MainCliente extends JFrame implements Runnable, IServer {
 					}
 
 				} else {
-					try {
-						conectarServidor();
-					} catch (RemoteException | NotBoundException e1) {
-						e1.printStackTrace();
-					}
+					conectarServidor();
 				}
 			}
 		});
@@ -206,7 +201,7 @@ public class MainCliente extends JFrame implements Runnable, IServer {
 		gbc_panel_1.gridy = 0;
 		panel_2.add(panel_1, gbc_panel_1);
 		GridBagLayout gbl_panel_1 = new GridBagLayout();
-		gbl_panel_1.columnWidths = new int[] { 57, 210, 0, 87, 215, 0 };
+		gbl_panel_1.columnWidths = new int[] { 47, 210, 0, 89, 153, 0 };
 		gbl_panel_1.rowHeights = new int[] { 0, 0, 0, 0 };
 		gbl_panel_1.columnWeights = new double[] { 1.0, 0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE };
 		gbl_panel_1.rowWeights = new double[] { 0.0, 0.0, 1.0, Double.MIN_VALUE };
@@ -288,7 +283,7 @@ public class MainCliente extends JFrame implements Runnable, IServer {
 		gbc_btnPublicarLista.gridx = 4;
 		gbc_btnPublicarLista.gridy = 1;
 		panel_1.add(btnPublicarLista, gbc_btnPublicarLista);
-		
+
 		JScrollPane scrollPane = new JScrollPane();
 		GridBagConstraints gbc_scrollPane = new GridBagConstraints();
 		gbc_scrollPane.gridwidth = 5;
@@ -297,7 +292,7 @@ public class MainCliente extends JFrame implements Runnable, IServer {
 		gbc_scrollPane.gridx = 0;
 		gbc_scrollPane.gridy = 2;
 		panel_1.add(scrollPane, gbc_scrollPane);
-		
+
 		tabelaArquivos = new JTable();
 		scrollPane.setViewportView(tabelaArquivos);
 
@@ -308,7 +303,7 @@ public class MainCliente extends JFrame implements Runnable, IServer {
 		try {
 			UnicastRemoteObject.unexportObject(this, true);
 			UnicastRemoteObject.unexportObject(registry, true);
-			
+
 			tfIPServidor.setEnabled(true);
 			nfPorta.setEnabled(true);
 			btnDesconectar.setEnabled(false);
@@ -318,23 +313,31 @@ public class MainCliente extends JFrame implements Runnable, IServer {
 		}
 	}
 
-	protected void conectarServidor() throws RemoteException, NotBoundException {
-		if (nfPorta.getText().equals("")){
+	protected void conectarServidor() {
+		if (nfPorta.getText().equals("")) {
 			JOptionPane.showMessageDialog(null, "Porta Invalida!");
 			return;
 		}
-		
-		registry = LocateRegistry.getRegistry(tfIPServidor.getText(), nfPorta.getNumber());
 
-		JOptionPane.showMessageDialog(null, registry);
-		servidor = (IServer) registry.lookup(IServer.NOME_SERVICO);
+		try {
+			registry = LocateRegistry.getRegistry(tfIPServidor.getText(), nfPorta.getNumber());
 
-		mySelf = new Cliente();
-		mySelf.setNome("Dread");
-		mySelf.setIp(tfIPServidor.getText());
-		mySelf.setPorta(nfPorta.getNumber());
+			servidor = (IServer) registry.lookup(IServer.NOME_SERVICO);
 
-		servidor.registrarCliente(mySelf);
+			System.out.println(servidor);
+			mySelf = new Cliente();
+			mySelf.setNome("Dread");
+			mySelf.setIp(tfIPServidor.getText());
+			mySelf.setPorta(nfPorta.getNumber());
+			servidor.registrarCliente(mySelf);
+
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NotBoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 	}
 
@@ -416,7 +419,7 @@ public class MainCliente extends JFrame implements Runnable, IServer {
 			tfIPServidor.setEnabled(false);
 			nfPorta.setEnabled(false);
 			btnDesconectar.setEnabled(true);
-			
+
 			Thread currentThread = Thread.currentThread();
 
 			// thread que fica verificando a pasta
