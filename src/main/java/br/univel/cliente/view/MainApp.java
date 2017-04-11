@@ -1,21 +1,29 @@
 package br.univel.cliente.view;
 
-import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
+
+import br.univel.jshare.comum.Cliente;
+import br.univel.jshare.comum.IServer;
 
 /**
  * Classe de execucao
@@ -24,11 +32,13 @@ import javax.swing.JTextArea;
  *
  */
 public class MainApp extends JFrame {
-//	private JPanel panelGeral;
 
-	private JButton btnNewButton;
+	private JButton btnDesconectar;
 	private JButton btnConectar;
-	
+
+	private static IServer servidor;
+	private static Registry registry;
+
 	private JPanel panelConexao;
 	private JPanel panelPrincipal;
 	private JTabbedPane panelGeral = new JTabbedPane();
@@ -40,9 +50,13 @@ public class MainApp extends JFrame {
 	private JPanel jpTelaServidor = new PanelServidor();
 	private JPanel jpTelaCliente = new PanelCliente();
 
-	Dimension dimensaoTela = Toolkit.getDefaultToolkit().getScreenSize();
-	private JTextField nfPortaConexao;
+	private Dimension dimensaoTela = Toolkit.getDefaultToolkit().getScreenSize();
+	private JNumberField nfPortaConexao;
 	private JTextField tfIpConexao;
+
+	private boolean souServidor = false;
+	private static Cliente meuCliente;
+	private static String meuIp;
 
 	/**
 	 * Classe construtora
@@ -55,6 +69,13 @@ public class MainApp extends JFrame {
 		this.setSize(LARGURA, ALTURA);
 		this.setResizable(false);
 		this.setVisible(true);
+
+		try {
+			InetAddress IP = InetAddress.getLocalHost();
+			this.meuIp = IP.getHostAddress();
+		} catch (UnknownHostException ex) {
+			ex.printStackTrace();
+		}
 
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[] { 0, 0 };
@@ -118,7 +139,7 @@ public class MainApp extends JFrame {
 		panelConexao.add(tfIpConexao, gbc_tfIpConexao);
 		tfIpConexao.setColumns(10);
 
-		nfPortaConexao = new JTextField();
+		nfPortaConexao = new JNumberField();
 		nfPortaConexao.setText("1818");
 		GridBagConstraints gbc_nfPortaConexao = new GridBagConstraints();
 		gbc_nfPortaConexao.fill = GridBagConstraints.HORIZONTAL;
@@ -129,6 +150,31 @@ public class MainApp extends JFrame {
 		nfPortaConexao.setColumns(10);
 
 		btnConectar = new JButton("Conectar");
+		btnConectar.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (tfIpConexao.getText().equals("")) {
+					if (nfPortaConexao.getText().equals("")) {
+						JOptionPane.showMessageDialog(null, "Porta Invalida!");
+						return;
+					}
+					
+					tfIpConexao.setText(meuIp);
+					tfIpConexao.setEditable(false);
+					nfPortaConexao.setEditable(false);
+					btnConectar.setEnabled(false);
+					new Servidor(meuIp, nfPortaConexao.getNumber());
+					
+					conectarServidor(meuIp, nfPortaConexao.getNumber());
+
+				} else {
+					conectarServidor(tfIpConexao.getText(), nfPortaConexao.getNumber());
+				}
+
+			}
+		});
+
 		GridBagConstraints gbc_btnConectar = new GridBagConstraints();
 		gbc_btnConectar.anchor = GridBagConstraints.NORTH;
 		gbc_btnConectar.fill = GridBagConstraints.HORIZONTAL;
@@ -137,14 +183,37 @@ public class MainApp extends JFrame {
 		gbc_btnConectar.gridy = 1;
 		panelPrincipal.add(btnConectar, gbc_btnConectar);
 
-		btnNewButton = new JButton("Desconectar");
+		btnDesconectar = new JButton("Desconectar");
+		btnDesconectar.setEnabled(false);
+		btnDesconectar.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				if (souServidor == true){
+					try {
+						servidor.desconectar(meuCliente);
+					} catch (RemoteException e) {
+						e.printStackTrace();
+					}
+				} else {
+					if (Servidor.desligar()){
+						btnConectar.setEnabled(true);
+						btnDesconectar.setEnabled(false);
+						tfIpConexao.setEnabled(true);
+						nfPortaConexao.setEnabled(true);
+						servidor = null;
+						registry = null;
+					};
+				}
+			}
+		});
 		GridBagConstraints gbc_btnNewButton = new GridBagConstraints();
 		gbc_btnNewButton.anchor = GridBagConstraints.NORTH;
 		gbc_btnNewButton.fill = GridBagConstraints.HORIZONTAL;
 		gbc_btnNewButton.insets = new Insets(0, 10, 10, 10);
 		gbc_btnNewButton.gridx = 1;
 		gbc_btnNewButton.gridy = 1;
-		panelPrincipal.add(btnNewButton, gbc_btnNewButton);
+		panelPrincipal.add(btnDesconectar, gbc_btnNewButton);
 
 		GridBagConstraints gbc_panelGeral = new GridBagConstraints();
 		gbc_panelGeral.gridwidth = 2;
@@ -156,6 +225,43 @@ public class MainApp extends JFrame {
 
 		panelGeral.addTab("Servidor", jpTelaServidor);
 		panelGeral.addTab("Cliente", jpTelaCliente);
+	}
+
+	protected void conectarServidor(String text, Integer number) {
+		if (nfPortaConexao.getText().equals("")) {
+			JOptionPane.showMessageDialog(null, "Porta Invalida!");
+			return;
+		}
+
+		try {
+			registry = LocateRegistry.getRegistry(tfIpConexao.getText(), nfPortaConexao.getNumber());
+
+			servidor = (IServer) registry.lookup(IServer.NOME_SERVICO);
+
+			meuCliente = new Cliente();
+
+			meuCliente.setNome("Dread");
+			meuCliente.setIp(meuIp);
+			meuCliente.setPorta(nfPortaConexao.getNumber());
+
+			servidor.registrarCliente(meuCliente);
+
+			btnConectar.setEnabled(false);
+			btnDesconectar.setEnabled(true);
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		} catch (NotBoundException e) {
+			e.printStackTrace();
+		}
+		souServidor = false;
+	}
+
+	public static IServer getServidor() {
+		return servidor;
+	}
+
+	public static Cliente getMeuCliente() {
+		return meuCliente;
 	}
 
 	/**

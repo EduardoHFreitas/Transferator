@@ -5,29 +5,47 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 
+import br.univel.jshare.comum.Arquivo;
+import br.univel.jshare.comum.Cliente;
 import br.univel.jshare.comum.TipoFiltro;
 
 public class PanelCliente extends JPanel {
+
+	private static final long serialVersionUID = 1L;
+
 	private JTable table;
 	private JTextField tfBuscar;
 	private JTextField tfValor;
+
+	private Map<Cliente, List<Arquivo>> mapaArquivos = new HashMap<Cliente, List<Arquivo>>();
+	private List<Arquivo> listaArquivos = new ArrayList<Arquivo>();
+	private JComboBox cbFiltro;
+
 	public PanelCliente() {
 		GridBagLayout gridBagLayout = new GridBagLayout();
-		gridBagLayout.columnWidths = new int[]{296, 271, 0};
-		gridBagLayout.rowHeights = new int[]{57, 0, 0, 0, 0, 0};
-		gridBagLayout.columnWeights = new double[]{1.0, 1.0, Double.MIN_VALUE};
-		gridBagLayout.rowWeights = new double[]{0.0, 0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE};
+		gridBagLayout.columnWidths = new int[] { 296, 271, 0 };
+		gridBagLayout.rowHeights = new int[] { 57, 0, 0, 0, 0, 0 };
+		gridBagLayout.columnWeights = new double[] { 1.0, 1.0, Double.MIN_VALUE };
+		gridBagLayout.rowWeights = new double[] { 0.0, 0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE };
 		setLayout(gridBagLayout);
-		
+
 		JPanel panel = new JPanel();
 		GridBagConstraints gbc_panel = new GridBagConstraints();
 		gbc_panel.gridwidth = 2;
@@ -37,12 +55,12 @@ public class PanelCliente extends JPanel {
 		gbc_panel.gridy = 0;
 		add(panel, gbc_panel);
 		GridBagLayout gbl_panel = new GridBagLayout();
-		gbl_panel.columnWidths = new int[]{55, 278, 0, 0, 0};
-		gbl_panel.rowHeights = new int[]{31, 0, 0};
-		gbl_panel.columnWeights = new double[]{0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE};
-		gbl_panel.rowWeights = new double[]{0.0, 0.0, Double.MIN_VALUE};
+		gbl_panel.columnWidths = new int[] { 55, 278, 0, 0, 0 };
+		gbl_panel.rowHeights = new int[] { 31, 0, 0 };
+		gbl_panel.columnWeights = new double[] { 0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE };
+		gbl_panel.rowWeights = new double[] { 0.0, 0.0, Double.MIN_VALUE };
 		panel.setLayout(gbl_panel);
-		
+
 		JLabel lblNewLabel = new JLabel("Buscar:");
 		GridBagConstraints gbc_lblNewLabel = new GridBagConstraints();
 		gbc_lblNewLabel.fill = GridBagConstraints.VERTICAL;
@@ -51,7 +69,7 @@ public class PanelCliente extends JPanel {
 		gbc_lblNewLabel.gridx = 0;
 		gbc_lblNewLabel.gridy = 0;
 		panel.add(lblNewLabel, gbc_lblNewLabel);
-		
+
 		tfBuscar = new JTextField();
 		GridBagConstraints gbc_tfBuscar = new GridBagConstraints();
 		gbc_tfBuscar.gridwidth = 3;
@@ -61,7 +79,7 @@ public class PanelCliente extends JPanel {
 		gbc_tfBuscar.gridy = 0;
 		panel.add(tfBuscar, gbc_tfBuscar);
 		tfBuscar.setColumns(10);
-		
+
 		JLabel lblFiltro = new JLabel("Filtro:");
 		GridBagConstraints gbc_lblFiltro = new GridBagConstraints();
 		gbc_lblFiltro.fill = GridBagConstraints.VERTICAL;
@@ -70,8 +88,8 @@ public class PanelCliente extends JPanel {
 		gbc_lblFiltro.gridx = 0;
 		gbc_lblFiltro.gridy = 1;
 		panel.add(lblFiltro, gbc_lblFiltro);
-		
-		JComboBox cbFiltro = new JComboBox(TipoFiltro.values());
+
+		cbFiltro = new JComboBox(TipoFiltro.values());
 		GridBagConstraints gbc_cbFiltro = new GridBagConstraints();
 		gbc_cbFiltro.insets = new Insets(5, 5, 5, 5);
 		gbc_cbFiltro.anchor = GridBagConstraints.NORTH;
@@ -79,7 +97,7 @@ public class PanelCliente extends JPanel {
 		gbc_cbFiltro.gridx = 1;
 		gbc_cbFiltro.gridy = 1;
 		panel.add(cbFiltro, gbc_cbFiltro);
-		
+
 		JLabel lblNewLabel_1 = new JLabel("Valor:");
 		GridBagConstraints gbc_lblNewLabel_1 = new GridBagConstraints();
 		gbc_lblNewLabel_1.fill = GridBagConstraints.VERTICAL;
@@ -88,7 +106,7 @@ public class PanelCliente extends JPanel {
 		gbc_lblNewLabel_1.gridx = 2;
 		gbc_lblNewLabel_1.gridy = 1;
 		panel.add(lblNewLabel_1, gbc_lblNewLabel_1);
-		
+
 		tfValor = new JTextField();
 		GridBagConstraints gbc_tfValor = new GridBagConstraints();
 		gbc_tfValor.insets = new Insets(5, 5, 5, 5);
@@ -97,8 +115,9 @@ public class PanelCliente extends JPanel {
 		gbc_tfValor.gridy = 1;
 		panel.add(tfValor, gbc_tfValor);
 		tfValor.setColumns(10);
-		
+
 		JButton btnBuscar = new JButton("Buscar");
+		btnBuscar.addActionListener(actionBuscar());
 		GridBagConstraints gbc_btnBuscar = new GridBagConstraints();
 		gbc_btnBuscar.fill = GridBagConstraints.HORIZONTAL;
 		gbc_btnBuscar.anchor = GridBagConstraints.NORTH;
@@ -107,8 +126,9 @@ public class PanelCliente extends JPanel {
 		gbc_btnBuscar.gridx = 0;
 		gbc_btnBuscar.gridy = 1;
 		add(btnBuscar, gbc_btnBuscar);
-		
+
 		JButton btnPublicar = new JButton("Publicar Minha Lista");
+		btnPublicar.addActionListener(actionPublicar());
 		GridBagConstraints gbc_btnPublicar = new GridBagConstraints();
 		gbc_btnPublicar.fill = GridBagConstraints.HORIZONTAL;
 		gbc_btnPublicar.anchor = GridBagConstraints.NORTH;
@@ -117,7 +137,7 @@ public class PanelCliente extends JPanel {
 		gbc_btnPublicar.gridx = 0;
 		gbc_btnPublicar.gridy = 2;
 		add(btnPublicar, gbc_btnPublicar);
-		
+
 		JScrollPane scrollPane = new JScrollPane();
 		GridBagConstraints gbc_scrollPane = new GridBagConstraints();
 		gbc_scrollPane.gridwidth = 2;
@@ -126,10 +146,10 @@ public class PanelCliente extends JPanel {
 		gbc_scrollPane.gridx = 0;
 		gbc_scrollPane.gridy = 3;
 		add(scrollPane, gbc_scrollPane);
-		
+
 		table = new JTable();
 		scrollPane.setViewportView(table);
-		
+
 		JButton BtnBaixar = new JButton("Baixar");
 		GridBagConstraints gbc_BtnBaixar = new GridBagConstraints();
 		gbc_BtnBaixar.anchor = GridBagConstraints.SOUTH;
@@ -145,18 +165,45 @@ public class PanelCliente extends JPanel {
 		return new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
+				if (tfBuscar.getText().equals("")) {
+					JOptionPane.showMessageDialog(null, "Campo de busca deve ser preenchido!");
+					return;
+				}
+
+				if (!cbFiltro.getSelectedItem().equals(TipoFiltro.NOME)) {
+					if (tfValor.getText().equals("")) {
+						JOptionPane.showMessageDialog(null, "Campo de valor deve ser preenchido!");
+						return;
+					}
+				}
+
+				try {
+					mapaArquivos = MainApp.getServidor().procurarArquivo(tfBuscar.getText(),
+							(TipoFiltro) cbFiltro.getSelectedItem(), tfValor.getText());
+				} catch (RemoteException e) {
+					e.printStackTrace();
+				}
+				
+				ResultadoModel modelo = new ResultadoModel(mapaArquivos);
+				
+				table.setModel(modelo);
 			}
 		};
 	}
-	
+
 	public ActionListener actionPublicar() {
 		return new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
+				try {
+					publicarMinhaLista("C:/Shared/");
+				} catch (RemoteException e) {
+					e.printStackTrace();
+				}
 			}
 		};
 	}
-	
+
 	public ActionListener actionBaixar() {
 		return new ActionListener() {
 			@Override
@@ -164,4 +211,24 @@ public class PanelCliente extends JPanel {
 			}
 		};
 	}
+
+	private void publicarMinhaLista(final String dir) throws RemoteException {
+		File diretorio = new File(dir);
+		File arquivos[] = diretorio.listFiles();
+
+		for (int i = 0; i < arquivos.length; i++) {
+			File file = arquivos[i];
+			Arquivo arquivo = new Arquivo();
+			arquivo.setNome(file.getName());
+			arquivo.setPath(file.getPath());
+			arquivo.setDataHoraModificacao(new Date());
+			arquivo.setTamanho(file.length());
+			arquivo.setMd5(Md5Util.getMD5Checksum(file.getAbsolutePath()));
+			arquivo.setId(i);
+			listaArquivos.add(arquivo);
+		}
+
+		MainApp.getServidor().publicarListaArquivos(MainApp.getMeuCliente(), listaArquivos);
+	}
+
 }

@@ -9,7 +9,8 @@ import javax.swing.JTable;
 
 public class PanelServidor extends JPanel {
 	
-	private JTextArea textArea;
+	private static final long serialVersionUID = 1L;
+	private static JTextArea textArea;
 
 	public PanelServidor() {
 		GridBagLayout gridBagLayout = new GridBagLayout();
@@ -30,11 +31,11 @@ public class PanelServidor extends JPanel {
 		scrollPane.setViewportView(textArea);
 	}
 
-	public JTextArea getTextArea() {
+	public static JTextArea getTextArea() {
 		return textArea;
 	}
 
 	public void setTextArea(JTextArea textArea) {
-		this.textArea = textArea;
+		PanelServidor.textArea = textArea;
 	}
 }
