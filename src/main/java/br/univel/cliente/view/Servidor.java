@@ -1,5 +1,9 @@
 package br.univel.cliente.view;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.rmi.NoSuchObjectException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -124,8 +128,14 @@ public class Servidor implements Runnable, IServer {
 
 	@Override
 	public byte[] baixarArquivo(Cliente cli, Arquivo arq) throws RemoteException {
-		// TODO Auto-generated method stub
-		return null;
+		Path path = Paths.get(arq.getPath());
+		try {
+			byte[] dados = Files.readAllBytes(path);
+			PanelServidor.getTextArea().setText(String.format("Cliente %s esta baixando o arquivo %s", cli.getNome(), arq.getNome()));
+			return dados;
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override

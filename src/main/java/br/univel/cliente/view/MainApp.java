@@ -10,9 +10,11 @@ import java.awt.event.ActionListener;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.rmi.NotBoundException;
+import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -31,7 +33,7 @@ import br.univel.jshare.comum.IServer;
  * @author EHDFREITAS
  *
  */
-public class MainApp extends JFrame {
+public class MainApp extends JFrame implements Remote {
 
 	private JButton btnDesconectar;
 	private JButton btnConectar;
@@ -46,6 +48,7 @@ public class MainApp extends JFrame {
 
 	public static final int LARGURA = 600;
 	public static final int ALTURA = 500;
+	public static final String PATH = "C:/Shared/";
 
 	private JPanel jpTelaServidor = new PanelServidor();
 	private JPanel jpTelaCliente = new PanelCliente();
@@ -56,6 +59,7 @@ public class MainApp extends JFrame {
 
 	private boolean souServidor = false;
 	private static Cliente meuCliente;
+	private static IServer meuServidor;
 	private static String meuIp;
 
 	/**
@@ -267,7 +271,9 @@ public class MainApp extends JFrame {
 			meuCliente.setPorta(nfPortaConexao.getNumber());
 
 			servidor.registrarCliente(meuCliente);
-
+			
+			new Servidor(meuIp, nfPortaConexao.getNumber());
+			
 			btnConectar.setEnabled(false);
 			btnDesconectar.setEnabled(true);
 			panelGeral.addTab("Cliente", jpTelaCliente);

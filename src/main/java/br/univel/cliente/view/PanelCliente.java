@@ -6,7 +6,15 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -21,17 +29,18 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.table.AbstractTableModel;
+import javax.swing.ListSelectionModel;
 
 import br.univel.jshare.comum.Arquivo;
 import br.univel.jshare.comum.Cliente;
+import br.univel.jshare.comum.IServer;
 import br.univel.jshare.comum.TipoFiltro;
 
 public class PanelCliente extends JPanel {
 
 	private static final long serialVersionUID = 1L;
 
-	private JTable table;
+	private JTable table = new JTable();
 	private JTextField tfBuscar;
 	private JTextField tfValor;
 
@@ -148,10 +157,8 @@ public class PanelCliente extends JPanel {
 		gbc_scrollPane.gridy = 3;
 		add(scrollPane, gbc_scrollPane);
 
-		table = new JTable();
-		scrollPane.setViewportView(table);
-
-		JButton BtnBaixar = new JButton("Baixar");
+		JButton btnBaixar = new JButton("Baixar");
+		btnBaixar.addActionListener(actionBaixar());
 		GridBagConstraints gbc_BtnBaixar = new GridBagConstraints();
 		gbc_BtnBaixar.anchor = GridBagConstraints.SOUTH;
 		gbc_BtnBaixar.fill = GridBagConstraints.HORIZONTAL;
@@ -159,11 +166,15 @@ public class PanelCliente extends JPanel {
 		gbc_BtnBaixar.insets = new Insets(3, 5, 3, 5);
 		gbc_BtnBaixar.gridx = 0;
 		gbc_BtnBaixar.gridy = 4;
-		add(BtnBaixar, gbc_BtnBaixar);
+		add(btnBaixar, gbc_BtnBaixar);
+
+		scrollPane.setViewportView(table);
 	}
 
 	public ActionListener actionBuscar() {
 		return new ActionListener() {
+			private ResultadoModel modelo;
+
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				if (!cbFiltro.getSelectedItem().equals(TipoFiltro.NOME)) {
@@ -171,9 +182,9 @@ public class PanelCliente extends JPanel {
 						JOptionPane.showMessageDialog(null, "Campo de valor deve ser preenchido!");
 						return;
 					}
-					
-					if (!cbFiltro.getSelectedItem().equals(TipoFiltro.EXTENSAO)){
-						try{
+
+					if (!cbFiltro.getSelectedItem().equals(TipoFiltro.EXTENSAO)) {
+						try {
 							Integer.parseInt(tfValor.getText());
 						} catch (NumberFormatException e) {
 							JOptionPane.showMessageDialog(null, "Campo deve ser inteiro!");
@@ -189,10 +200,11 @@ public class PanelCliente extends JPanel {
 					e.printStackTrace();
 				}
 
-				ResultadoModel modelo = new ResultadoModel(mapaArquivos);
+				modelo = new ResultadoModel(mapaArquivos);
 
 				table.removeAll();
 				table.setModel(modelo);
+				table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 			}
 		};
 	}
@@ -202,7 +214,7 @@ public class PanelCliente extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				try {
-					publicarMinhaLista("C:/Shared/");
+					publicarMinhaLista(MainApp.PATH);
 				} catch (RemoteException e) {
 					e.printStackTrace();
 				}
@@ -210,29 +222,70 @@ public class PanelCliente extends JPanel {
 		};
 	}
 
-	public ActionListener actionBaixar() {
+	private ActionListener actionBaixar() {
 		return new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
+				if (table.getSelectedRow() < 0) {
+					JOptionPane.showMessageDialog(null, "Nenhum arquivo foi selecionado!");
+				} else {
+					Integer linha = table.getSelectedRow();
+					Cliente cliente = (Cliente) table.getModel().getValueAt(linha, 5);
+					Arquivo arquivo = (Arquivo) table.getModel().getValueAt(linha, 4);
+
+					Registry registry;
+					try {
+						registry = LocateRegistry.getRegistry(cliente.getIp(), cliente.getPorta());
+						IServer servidor = (IServer) registry.lookup(IServer.NOME_SERVICO);
+
+						ler(arquivo, servidor.baixarArquivo(cliente, arquivo));
+					} catch (RemoteException e) {
+						e.printStackTrace();
+					} catch (NotBoundException e) {
+						e.printStackTrace();
+					}
+				}
 			}
 		};
 	}
 
+	public void ler(Arquivo arq, byte[] dados) {
+		try {
+			File arquivo = new File(MainApp.PATH + "Download " + arq.getNome() + "." + arq.getExtensao());
+			Files.write(Paths.get(arquivo.getPath()), dados, StandardOpenOption.CREATE);
+
+			String md5Novo = Md5Util.getMD5Checksum(arquivo.getAbsolutePath());
+			if (!md5Novo.equals(arq.getMd5())) {
+				JOptionPane.showMessageDialog(null, String.format(
+						"Houve algum erro ao baixar o arquivo %s \n Ele podera estar corrompido!", arq.getNome()));
+			} else {
+				JOptionPane.showMessageDialog(null,
+						String.format("O arquivo %s foi baixado com sucesso!", arq.getNome()));
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	private void publicarMinhaLista(final String dir) throws RemoteException {
 		File diretorio = new File(dir);
+		if (!diretorio.exists()) {
+			diretorio.mkdir();
+		}
 		File arquivos[] = diretorio.listFiles();
 
 		listaArquivos.clear();
-		
+
 		for (int i = 0; i < arquivos.length; i++) {
 			File file = arquivos[i];
 			Arquivo arquivo = new Arquivo();
-			arquivo.setNome(file.getName());
+			arquivo.setNome(file.getName().substring(0, file.getName().lastIndexOf(".")));
+			arquivo.setExtensao(file.getName().substring((file.getName().lastIndexOf(".") + 1)));
 			arquivo.setPath(file.getPath());
 			arquivo.setDataHoraModificacao(new Date());
 			arquivo.setTamanho(file.length());
 			arquivo.setMd5(Md5Util.getMD5Checksum(file.getAbsolutePath()));
-			arquivo.setId(i);
+			arquivo.setId(i + 1);
 			listaArquivos.add(arquivo);
 		}
 
