@@ -12,6 +12,7 @@ import br.univel.jshare.comum.Cliente;
 
 public class ResultadoModel extends AbstractTableModel {
 
+	private static final long serialVersionUID = 1L;
 	private Object[][] matrix;
 
 	/**

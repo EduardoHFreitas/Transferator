@@ -23,7 +23,6 @@ public class Servidor implements Runnable, IServer {
 	private final String ipServidor;
 	private final Integer portaServidor;
 
-	private Thread threadMonitor;
 	private static Registry registry;
 
 	private Map<Cliente, List<Arquivo>> mapaArquivos = new HashMap<Cliente, List<Arquivo>>();
@@ -35,8 +34,8 @@ public class Servidor implements Runnable, IServer {
 		this.portaServidor = porta;
 
 		PanelServidor.getTextArea().append("Iniciando Servidor\n");
-		this.threadMonitor = new Thread(this);
-		this.threadMonitor.start();
+		Thread threadMonitor = new Thread(this);
+		threadMonitor.start();
 	}
 
 	public static boolean desligar() {
@@ -45,7 +44,7 @@ public class Servidor implements Runnable, IServer {
 			registry = null;
 			meuServidor = null;
 
-			PanelServidor.getTextArea().append("Servidor Finali!\n");
+			PanelServidor.getTextArea().append("Servidor Finalizado!\n");
 
 			return true;
 		} catch (NoSuchObjectException e) {
@@ -76,10 +75,7 @@ public class Servidor implements Runnable, IServer {
 
 	@Override
 	public void publicarListaArquivos(Cliente c, List<Arquivo> lista) throws RemoteException {
-		mapaArquivos.put(c, lista);
-		lista.forEach(a -> {
-			System.out.println(c.getNome() + " " + a.getNome());
-		});
+		this.mapaArquivos.put(c, lista);
 		PanelServidor.getTextArea().append(String.format("Cliente %s publicou sua lista de arquivos!\n", c.getNome()));
 	}
 
@@ -87,16 +83,39 @@ public class Servidor implements Runnable, IServer {
 	public Map<Cliente, List<Arquivo>> procurarArquivo(String query, TipoFiltro tipoFiltro, String filtro)
 			throws RemoteException {
 		Map<Cliente, List<Arquivo>> mapaAux = new HashMap<>();
-		
+
 		Pattern pattern = Pattern.compile(".*" + query + ".*");
-		
+
 		mapaArquivos.entrySet().forEach(cliente -> {
-			mapaArquivos.get(cliente).forEach(arquivos -> {				
-				Matcher matcher = pattern.matcher(arquivos.getNome());
+			List<Arquivo> listaAux = new ArrayList<>();
+			cliente.getValue().forEach(arquivo -> {
+				Matcher matcher = pattern.matcher(arquivo.getNome());
 				if (matcher.matches()) {
-					mapaAux.put((Cliente) mapaArquivos.entrySet(), mapaArquivos.get(mapaArquivos.entrySet()));
+					switch (tipoFiltro) {
+					case EXTENSAO:
+						if (arquivo.getNome().toLowerCase().endsWith(filtro.toLowerCase())) {
+							listaAux.add(arquivo);
+						}
+						break;
+					case TAMANHO_MAX:
+						if (arquivo.getTamanho() <= Integer.parseInt(filtro)) {
+							listaAux.add(arquivo);
+						}
+						break;
+					case TAMANHO_MIN:
+						if (arquivo.getTamanho() >= Integer.parseInt(filtro)) {
+							listaAux.add(arquivo);
+						}
+						break;
+					default:
+						listaAux.add(arquivo);
+						break;
+					}
 				}
 			});
+			if (listaAux != null) {
+				mapaAux.put(cliente.getKey(), listaAux);
+			}
 		});
 
 		PanelServidor.getTextArea().append(String.format("Cliente buscou por %s.\n", query));
@@ -111,6 +130,13 @@ public class Servidor implements Runnable, IServer {
 
 	@Override
 	public void desconectar(Cliente c) throws RemoteException {
+		if (listaClientes.contains(c)) {
+			listaClientes.remove(c);
+		}
+
+		if (mapaArquivos.containsKey(c)) {
+			mapaArquivos.remove(c);
+		}
 
 		PanelServidor.getTextArea().append(String.format("Cliente %s se desconectou!\n", c.getNome()));
 	}

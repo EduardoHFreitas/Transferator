@@ -21,6 +21,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.table.AbstractTableModel;
 
 import br.univel.jshare.comum.Arquivo;
 import br.univel.jshare.comum.Cliente;
@@ -165,15 +166,19 @@ public class PanelCliente extends JPanel {
 		return new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				if (tfBuscar.getText().equals("")) {
-					JOptionPane.showMessageDialog(null, "Campo de busca deve ser preenchido!");
-					return;
-				}
-
 				if (!cbFiltro.getSelectedItem().equals(TipoFiltro.NOME)) {
 					if (tfValor.getText().equals("")) {
 						JOptionPane.showMessageDialog(null, "Campo de valor deve ser preenchido!");
 						return;
+					}
+					
+					if (!cbFiltro.getSelectedItem().equals(TipoFiltro.EXTENSAO)){
+						try{
+							Integer.parseInt(tfValor.getText());
+						} catch (NumberFormatException e) {
+							JOptionPane.showMessageDialog(null, "Campo deve ser inteiro!");
+							return;
+						}
 					}
 				}
 
@@ -183,9 +188,10 @@ public class PanelCliente extends JPanel {
 				} catch (RemoteException e) {
 					e.printStackTrace();
 				}
-				
+
 				ResultadoModel modelo = new ResultadoModel(mapaArquivos);
-				
+
+				table.removeAll();
 				table.setModel(modelo);
 			}
 		};
@@ -216,6 +222,8 @@ public class PanelCliente extends JPanel {
 		File diretorio = new File(dir);
 		File arquivos[] = diretorio.listFiles();
 
+		listaArquivos.clear();
+		
 		for (int i = 0; i < arquivos.length; i++) {
 			File file = arquivos[i];
 			Arquivo arquivo = new Arquivo();

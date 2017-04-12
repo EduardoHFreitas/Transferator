@@ -150,30 +150,7 @@ public class MainApp extends JFrame {
 		nfPortaConexao.setColumns(10);
 
 		btnConectar = new JButton("Conectar");
-		btnConectar.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (tfIpConexao.getText().equals("")) {
-					if (nfPortaConexao.getText().equals("")) {
-						JOptionPane.showMessageDialog(null, "Porta Invalida!");
-						return;
-					}
-					
-					tfIpConexao.setText(meuIp);
-					tfIpConexao.setEditable(false);
-					nfPortaConexao.setEditable(false);
-					btnConectar.setEnabled(false);
-					new Servidor(meuIp, nfPortaConexao.getNumber());
-					
-					conectarServidor(meuIp, nfPortaConexao.getNumber());
-
-				} else {
-					conectarServidor(tfIpConexao.getText(), nfPortaConexao.getNumber());
-				}
-
-			}
-		});
+		btnConectar.addActionListener(conectar());
 
 		GridBagConstraints gbc_btnConectar = new GridBagConstraints();
 		gbc_btnConectar.anchor = GridBagConstraints.NORTH;
@@ -185,28 +162,7 @@ public class MainApp extends JFrame {
 
 		btnDesconectar = new JButton("Desconectar");
 		btnDesconectar.setEnabled(false);
-		btnDesconectar.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				if (souServidor == true){
-					try {
-						servidor.desconectar(meuCliente);
-					} catch (RemoteException e) {
-						e.printStackTrace();
-					}
-				} else {
-					if (Servidor.desligar()){
-						btnConectar.setEnabled(true);
-						btnDesconectar.setEnabled(false);
-						tfIpConexao.setEnabled(true);
-						nfPortaConexao.setEnabled(true);
-						servidor = null;
-						registry = null;
-					};
-				}
-			}
-		});
+		btnDesconectar.addActionListener(desconectar());
 		GridBagConstraints gbc_btnNewButton = new GridBagConstraints();
 		gbc_btnNewButton.anchor = GridBagConstraints.NORTH;
 		gbc_btnNewButton.fill = GridBagConstraints.HORIZONTAL;
@@ -224,10 +180,76 @@ public class MainApp extends JFrame {
 		panelPrincipal.add(panelGeral, gbc_panelGeral);
 
 		panelGeral.addTab("Servidor", jpTelaServidor);
-		panelGeral.addTab("Cliente", jpTelaCliente);
 	}
 
-	protected void conectarServidor(String text, Integer number) {
+	public ActionListener desconectar() {
+		return new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				if (souServidor == false) {
+					try {
+						servidor.desconectar(meuCliente);
+						resetarTela();
+					} catch (RemoteException e) {
+						e.printStackTrace();
+					}
+				} else {
+					if (Servidor.desligar()) {
+						resetarTela();
+					}
+				}
+			}
+		};
+	}
+
+	protected void resetarTela() {
+		tfIpConexao.setText("");
+		tfIpConexao.setEnabled(true);
+
+		nfPortaConexao.setText("");
+		nfPortaConexao.setEnabled(true);
+
+		btnConectar.setEnabled(true);
+		btnDesconectar.setEnabled(false);
+
+		servidor = null;
+		registry = null;
+
+		panelGeral.remove(jpTelaCliente);
+
+		PanelServidor.getTextArea().setText("");
+	}
+
+	public ActionListener conectar() {
+		return new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (tfIpConexao.getText().equals("")) {
+					if (nfPortaConexao.getText().equals("")) {
+						JOptionPane.showMessageDialog(null, "Porta Invalida!");
+						return;
+					}
+
+					tfIpConexao.setText(meuIp);
+					tfIpConexao.setEnabled(false);
+					nfPortaConexao.setEnabled(false);
+					btnConectar.setEnabled(false);
+					new Servidor(meuIp, nfPortaConexao.getNumber());
+
+					conectarServidor(meuIp, nfPortaConexao.getNumber());
+
+					souServidor = true;
+				} else {
+					conectarServidor(tfIpConexao.getText(), nfPortaConexao.getNumber());
+				}
+				jpTelaCliente.setEnabled(true);
+			}
+		};
+	}
+
+	private void conectarServidor(String text, Integer number) {
 		if (nfPortaConexao.getText().equals("")) {
 			JOptionPane.showMessageDialog(null, "Porta Invalida!");
 			return;
@@ -248,12 +270,12 @@ public class MainApp extends JFrame {
 
 			btnConectar.setEnabled(false);
 			btnDesconectar.setEnabled(true);
+			panelGeral.addTab("Cliente", jpTelaCliente);
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		} catch (NotBoundException e) {
 			e.printStackTrace();
 		}
-		souServidor = false;
 	}
 
 	public static IServer getServidor() {
