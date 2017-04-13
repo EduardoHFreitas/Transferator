@@ -131,7 +131,7 @@ public class Servidor implements Runnable, IServer {
 		Path path = Paths.get(arq.getPath());
 		try {
 			byte[] dados = Files.readAllBytes(path);
-			PanelServidor.getTextArea().setText(String.format("Cliente %s esta baixando o arquivo %s", cli.getNome(), arq.getNome()));
+				PanelServidor.getTextArea().append(String.format("Cliente %s esta baixando o arquivo %s", cli.getNome(), arq.getNome()));
 			return dados;
 		} catch (IOException e) {
 			throw new RuntimeException(e);

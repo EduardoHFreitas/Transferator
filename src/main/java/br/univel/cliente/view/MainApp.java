@@ -58,8 +58,8 @@ public class MainApp extends JFrame implements Remote {
 	private JTextField tfIpConexao;
 
 	private boolean souServidor = false;
+	private Object registryCliente;
 	private static Cliente meuCliente;
-	private static IServer meuServidor;
 	private static String meuIp;
 
 	/**
@@ -235,19 +235,10 @@ public class MainApp extends JFrame implements Remote {
 						JOptionPane.showMessageDialog(null, "Porta Invalida!");
 						return;
 					}
-
-					tfIpConexao.setText(meuIp);
-					tfIpConexao.setEnabled(false);
-					nfPortaConexao.setEnabled(false);
-					btnConectar.setEnabled(false);
-					new Servidor(meuIp, nfPortaConexao.getNumber());
-
-					conectarServidor(meuIp, nfPortaConexao.getNumber());
-
 					souServidor = true;
-				} else {
-					conectarServidor(tfIpConexao.getText(), nfPortaConexao.getNumber());
+					tfIpConexao.setText(meuIp);
 				}
+				conectarServidor(tfIpConexao.getText(), nfPortaConexao.getNumber());
 				jpTelaCliente.setEnabled(true);
 			}
 		};
@@ -258,6 +249,12 @@ public class MainApp extends JFrame implements Remote {
 			JOptionPane.showMessageDialog(null, "Porta Invalida!");
 			return;
 		}
+		
+		tfIpConexao.setEnabled(false);
+		nfPortaConexao.setEnabled(false);
+		btnConectar.setEnabled(false);
+
+		new Servidor(tfIpConexao.getText(), nfPortaConexao.getNumber());
 
 		try {
 			registry = LocateRegistry.getRegistry(tfIpConexao.getText(), nfPortaConexao.getNumber());
@@ -271,8 +268,6 @@ public class MainApp extends JFrame implements Remote {
 			meuCliente.setPorta(nfPortaConexao.getNumber());
 
 			servidor.registrarCliente(meuCliente);
-			
-			new Servidor(meuIp, nfPortaConexao.getNumber());
 			
 			btnConectar.setEnabled(false);
 			btnDesconectar.setEnabled(true);
