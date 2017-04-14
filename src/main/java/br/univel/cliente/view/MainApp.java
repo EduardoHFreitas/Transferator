@@ -249,7 +249,7 @@ public class MainApp extends JFrame implements Remote {
 			JOptionPane.showMessageDialog(null, "Porta Invalida!");
 			return;
 		}
-		
+
 		tfIpConexao.setEnabled(false);
 		nfPortaConexao.setEnabled(false);
 		btnConectar.setEnabled(false);
@@ -268,7 +268,7 @@ public class MainApp extends JFrame implements Remote {
 			meuCliente.setPorta(nfPortaConexao.getNumber());
 
 			servidor.registrarCliente(meuCliente);
-			
+
 			btnConectar.setEnabled(false);
 			btnDesconectar.setEnabled(true);
 			panelGeral.addTab("Cliente", jpTelaCliente);

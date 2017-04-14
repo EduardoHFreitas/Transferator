@@ -45,7 +45,7 @@ public class PanelCliente extends JPanel {
 	private JTextField tfValor;
 
 	private Map<Cliente, List<Arquivo>> mapaArquivos = new HashMap<Cliente, List<Arquivo>>();
-	private List<Arquivo> listaArquivos = new ArrayList<Arquivo>();
+	private static List<Arquivo> listaArquivos = new ArrayList<Arquivo>();
 	private JComboBox cbFiltro;
 
 	public PanelCliente() {
@@ -213,11 +213,7 @@ public class PanelCliente extends JPanel {
 		return new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				try {
-					publicarMinhaLista(MainApp.PATH);
-				} catch (RemoteException e) {
-					e.printStackTrace();
-				}
+				new Monitorador(MainApp.PATH);
 			}
 		};
 	}
@@ -267,29 +263,17 @@ public class PanelCliente extends JPanel {
 		}
 	}
 
-	private void publicarMinhaLista(final String dir) throws RemoteException {
-		File diretorio = new File(dir);
-		if (!diretorio.exists()) {
-			diretorio.mkdir();
-		}
-		File arquivos[] = diretorio.listFiles();
-
-		listaArquivos.clear();
-
-		for (int i = 0; i < arquivos.length; i++) {
-			File file = arquivos[i];
-			Arquivo arquivo = new Arquivo();
-			arquivo.setNome(file.getName().substring(0, file.getName().lastIndexOf(".")));
-			arquivo.setExtensao(file.getName().substring((file.getName().lastIndexOf(".") + 1)));
-			arquivo.setPath(file.getPath());
-			arquivo.setDataHoraModificacao(new Date());
-			arquivo.setTamanho(file.length());
-			arquivo.setMd5(Md5Util.getMD5Checksum(file.getAbsolutePath()));
-			arquivo.setId(i + 1);
-			listaArquivos.add(arquivo);
-		}
-
-		MainApp.getServidor().publicarListaArquivos(MainApp.getMeuCliente(), listaArquivos);
+	/**
+	 * @return the listaArquivos
+	 */
+	public synchronized static List<Arquivo> getListaArquivos() {
+		return listaArquivos;
 	}
 
+	/**
+	 * @param listaArquivos the listaArquivos to set
+	 */
+	public synchronized static void setListaArquivos(List<Arquivo> listaArquivos) {
+		PanelCliente.listaArquivos = listaArquivos;
+	}
 }
