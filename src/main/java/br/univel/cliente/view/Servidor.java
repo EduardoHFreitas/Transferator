@@ -97,7 +97,7 @@ public class Servidor implements Runnable, IServer {
 				if (matcher.matches()) {
 					switch (tipoFiltro) {
 					case EXTENSAO:
-						if (arquivo.getNome().toLowerCase().endsWith(filtro.toLowerCase())) {
+						if (arquivo.getExtensao().toLowerCase().contains(filtro.toLowerCase())) {
 							listaAux.add(arquivo);
 						}
 						break;

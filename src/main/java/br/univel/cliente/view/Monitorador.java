@@ -47,8 +47,8 @@ public class Monitorador implements Runnable {
 
 		while (this.threadMonitor == currentThread) {
 			try {
-				Thread.sleep(10000);
 				publicarMinhaLista(diretorio);
+				Thread.sleep(10000);
 			} catch (RemoteException e) {
 				e.printStackTrace();
 			} catch (InterruptedException e) {

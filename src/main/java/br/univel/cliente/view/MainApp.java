@@ -273,9 +273,9 @@ public class MainApp extends JFrame implements Remote {
 			btnDesconectar.setEnabled(true);
 			panelGeral.addTab("Cliente", jpTelaCliente);
 		} catch (RemoteException e) {
-			e.printStackTrace();
+			JOptionPane.showMessageDialog(null, "Nao foi possivel e conectar ao servidor!");
 		} catch (NotBoundException e) {
-			e.printStackTrace();
+			JOptionPane.showMessageDialog(null, "Nao foi possivel e conectar ao servidor!");
 		}
 	}
 
