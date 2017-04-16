@@ -144,7 +144,6 @@ public class MainApp extends JFrame implements Remote {
 		tfIpConexao.setColumns(10);
 
 		nfPortaConexao = new JNumberField();
-		nfPortaConexao.setText("1818");
 		GridBagConstraints gbc_nfPortaConexao = new GridBagConstraints();
 		gbc_nfPortaConexao.fill = GridBagConstraints.HORIZONTAL;
 		gbc_nfPortaConexao.anchor = GridBagConstraints.NORTH;
@@ -183,6 +182,8 @@ public class MainApp extends JFrame implements Remote {
 		gbc_panelGeral.gridy = 2;
 		panelPrincipal.add(panelGeral, gbc_panelGeral);
 
+		nfPortaConexao.setText("1818");
+		tfIpConexao.setText(meuIp);
 		panelGeral.addTab("Servidor", jpTelaServidor);
 	}
 
@@ -208,10 +209,10 @@ public class MainApp extends JFrame implements Remote {
 	}
 
 	protected void resetarTela() {
-		tfIpConexao.setText("");
-		tfIpConexao.setEnabled(true);
+		tfIpConexao.setText(meuIp);
+		nfPortaConexao.setText("1818");
 
-		nfPortaConexao.setText("");
+		tfIpConexao.setEnabled(true);
 		nfPortaConexao.setEnabled(true);
 
 		btnConectar.setEnabled(true);
@@ -230,13 +231,12 @@ public class MainApp extends JFrame implements Remote {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (tfIpConexao.getText().equals("")) {
-					if (nfPortaConexao.getText().equals("")) {
-						JOptionPane.showMessageDialog(null, "Porta Invalida!");
-						return;
-					}
+				if (nfPortaConexao.getText().equals("")) {
+					JOptionPane.showMessageDialog(null, "Porta Invalida!");
+					return;
+				}
+				if (tfIpConexao.getText().equals(meuIp)) {
 					souServidor = true;
-					tfIpConexao.setText(meuIp);
 				}
 				conectarServidor(tfIpConexao.getText(), nfPortaConexao.getNumber());
 				jpTelaCliente.setEnabled(true);
@@ -274,8 +274,10 @@ public class MainApp extends JFrame implements Remote {
 			panelGeral.addTab("Cliente", jpTelaCliente);
 		} catch (RemoteException e) {
 			JOptionPane.showMessageDialog(null, "Nao foi possivel e conectar ao servidor!");
+			resetarTela();
 		} catch (NotBoundException e) {
 			JOptionPane.showMessageDialog(null, "Nao foi possivel e conectar ao servidor!");
+			resetarTela();
 		}
 	}
 
