@@ -1,4 +1,4 @@
-package br.univel.cliente.view;
+package br.univel.cliente;
 
 import java.io.*;
 import java.security.MessageDigest;

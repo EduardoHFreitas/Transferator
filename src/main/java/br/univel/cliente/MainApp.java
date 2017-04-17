@@ -1,4 +1,4 @@
-package br.univel.cliente.view;
+package br.univel.cliente;
 
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -48,7 +48,7 @@ public class MainApp extends JFrame implements Remote {
 
 	public static final int LARGURA = 600;
 	public static final int ALTURA = 500;
-	public static final String PATH = "C:/Shared/";
+	public static final String PATH = "C:\\Shared\\";
 
 	private JPanel jpTelaServidor = new PanelServidor();
 	private JPanel jpTelaCliente = new PanelCliente();
@@ -78,7 +78,7 @@ public class MainApp extends JFrame implements Remote {
 			InetAddress IP = InetAddress.getLocalHost();
 			this.meuIp = IP.getHostAddress();
 		} catch (UnknownHostException ex) {
-			ex.printStackTrace();
+			PanelServidor.getTextArea().append("Erro ao buscar o IP da maquina!\n" + ex.getMessage());
 		}
 
 		GridBagLayout gridBagLayout = new GridBagLayout();
@@ -257,6 +257,12 @@ public class MainApp extends JFrame implements Remote {
 		new Servidor(tfIpConexao.getText(), nfPortaConexao.getNumber());
 
 		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e1) {
+			PanelServidor.getTextArea().append("Erro ao pausar thread atual!\n");
+		}
+		
+		try {
 			registry = LocateRegistry.getRegistry(tfIpConexao.getText(), nfPortaConexao.getNumber());
 
 			servidor = (IServer) registry.lookup(IServer.NOME_SERVICO);
@@ -273,10 +279,12 @@ public class MainApp extends JFrame implements Remote {
 			btnDesconectar.setEnabled(true);
 			panelGeral.addTab("Cliente", jpTelaCliente);
 		} catch (RemoteException e) {
-			JOptionPane.showMessageDialog(null, "Nao foi possivel e conectar ao servidor!");
+			JOptionPane.showMessageDialog(null, "Nao foi possivel e conectar ao servidor, tente novamente!");
+			PanelServidor.getTextArea().append("Erro ao se conectar ao servidor!\n" + e.getMessage());
 			resetarTela();
 		} catch (NotBoundException e) {
-			JOptionPane.showMessageDialog(null, "Nao foi possivel e conectar ao servidor!");
+			JOptionPane.showMessageDialog(null, "Nao foi possivel e conectar ao servidorm, tente novamente!");
+			PanelServidor.getTextArea().append("Erro ao se conectar ao servidor!\n" + e.getMessage());
 			resetarTela();
 		}
 	}

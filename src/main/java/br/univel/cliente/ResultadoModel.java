@@ -1,4 +1,4 @@
-package br.univel.cliente.view;
+package br.univel.cliente;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,8 +41,8 @@ public class ResultadoModel extends AbstractTableModel {
 			for (Arquivo arq : dados.get(cli)) {
 				matrix[cont][0] = cli.getId();
 				matrix[cont][1] = cli.getNome();
-				matrix[cont][2] = arq.getId();
-				matrix[cont][3] = arq.getNome();
+				matrix[cont][2] = arq.getNome();
+				matrix[cont][3] = arq.getExtensao();
 				matrix[cont][4] = arq;
 				matrix[cont][5] = cli;
 				cont++;

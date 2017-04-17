@@ -1,4 +1,4 @@
-package br.univel.cliente.view;
+package br.univel.cliente;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -122,7 +122,7 @@ public class Servidor implements Runnable, IServer {
 			}
 		});
 
-		PanelServidor.getTextArea().append(String.format("Cliente buscou por %s.\n", query));
+		PanelServidor.getTextArea().append(String.format("Alguem esta buscando por '%s'\n", query));
 		return mapaAux;
 	}
 

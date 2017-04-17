@@ -1,4 +1,4 @@
-package br.univel.cliente.view;
+package br.univel.cliente;
 
 import java.io.File;
 import java.rmi.RemoteException;
@@ -10,7 +10,9 @@ public class Monitorador implements Runnable {
 	private Thread threadMonitor;
 	private String diretorio;
 	
-	public Monitorador(String diretorio) {
+	public static Monitorador monitorador;
+	
+	private Monitorador(String diretorio) {
 		this.diretorio = diretorio;
 		this.threadMonitor = new Thread(this);
 		this.threadMonitor.start();
@@ -50,10 +52,20 @@ public class Monitorador implements Runnable {
 				publicarMinhaLista(diretorio);
 				Thread.sleep(10000);
 			} catch (RemoteException e) {
-				e.printStackTrace();
+				PanelServidor.getTextArea().append("Erro ao publicar lista de arquivos!\n" + e.getMessage());
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				PanelServidor.getTextArea().append("Erro ao publicar lista de arquivos!\n" + e.getMessage());
 			}
 		}
+	}
+
+	/**
+	 * @return the monitorador
+	 */
+	public synchronized static Monitorador getMonitorador(String diretorio) {
+		if (monitorador == null){
+			monitorador = new Monitorador(diretorio);
+		}
+		return monitorador;
 	}
 }

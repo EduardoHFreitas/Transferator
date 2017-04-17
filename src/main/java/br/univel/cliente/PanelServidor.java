@@ -1,4 +1,4 @@
-package br.univel.cliente.view;
+package br.univel.cliente;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;

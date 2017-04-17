@@ -1,4 +1,4 @@
-package br.univel.cliente.view;
+package br.univel.cliente;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -196,24 +196,39 @@ public class PanelCliente extends JPanel {
 				try {
 					mapaArquivos = MainApp.getServidor().procurarArquivo(tfBuscar.getText(),
 							(TipoFiltro) cbFiltro.getSelectedItem(), tfValor.getText());
-				} catch (RemoteException e) {
-					e.printStackTrace();
+				} catch (Exception e) {
+					PanelServidor.getTextArea().append("Erro ao buscar arquivo!\n" + e.getMessage());
 				}
 
 				modelo = new ResultadoModel(mapaArquivos);
-
 				table.removeAll();
 				table.setModel(modelo);
+				configurarTabela();
 				table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 			}
 		};
+	}
+
+	protected void configurarTabela() {
+		table.getColumnModel().getColumn(0).setResizable(false);
+		table.getColumnModel().getColumn(0).setPreferredWidth(10);
+		table.getColumnModel().getColumn(0).setHeaderValue("ID");
+		table.getColumnModel().getColumn(1).setResizable(false);
+		table.getColumnModel().getColumn(1).setPreferredWidth(100);
+		table.getColumnModel().getColumn(1).setHeaderValue("Usuario");
+		table.getColumnModel().getColumn(2).setResizable(false);
+		table.getColumnModel().getColumn(2).setPreferredWidth(200);
+		table.getColumnModel().getColumn(2).setHeaderValue("Arquivo");
+		table.getColumnModel().getColumn(3).setResizable(false);
+		table.getColumnModel().getColumn(3).setPreferredWidth(20);
+		table.getColumnModel().getColumn(3).setHeaderValue("Extensao");
 	}
 
 	public ActionListener actionPublicar() {
 		return new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				new Monitorador(MainApp.PATH);
+				Monitorador.getMonitorador(MainApp.PATH);
 			}
 		};
 	}
@@ -234,11 +249,11 @@ public class PanelCliente extends JPanel {
 						registry = LocateRegistry.getRegistry(cliente.getIp(), cliente.getPorta());
 						IServer servidor = (IServer) registry.lookup(IServer.NOME_SERVICO);
 
-						ler(arquivo, servidor.baixarArquivo(cliente, arquivo));
+						ler(arquivo, servidor.baixarArquivo(MainApp.getMeuCliente(), arquivo));
 					} catch (RemoteException e) {
-						e.printStackTrace();
+						PanelServidor.getTextArea().append("Erro ao baixar arquivo!\n" + e.getMessage());
 					} catch (NotBoundException e) {
-						e.printStackTrace();
+						PanelServidor.getTextArea().append("Erro ao baixar arquivo!\n" + e.getMessage());
 					}
 				}
 			}
@@ -259,7 +274,7 @@ public class PanelCliente extends JPanel {
 						String.format("O arquivo %s foi baixado com sucesso!", arq.getNome()));
 			}
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			PanelServidor.getTextArea().append("Erro ao baixar arquivo!\n" + e.getMessage());
 		}
 	}
 
