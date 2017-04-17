@@ -16,6 +16,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.management.RuntimeErrorException;
+
 import br.univel.jshare.comum.Arquivo;
 import br.univel.jshare.comum.Cliente;
 import br.univel.jshare.comum.IServer;
@@ -129,17 +131,26 @@ public class Servidor implements Runnable, IServer {
 	@Override
 	public byte[] baixarArquivo(Cliente cli, Arquivo arq) throws RemoteException {
 		Path path = Paths.get(arq.getPath());
-		byte[] dados = null;
+		String cliente = "";
+		try{
+			cliente = cli.getNome();
+			if (cliente == null){
+				cliente = "Anonimo";
+			}
+		} catch (Exception e) {
+			cliente = "Anonimo";
+		}
 		try {
-			dados = Files.readAllBytes(path);
+			byte[] dados = Files.readAllBytes(path);
 			PanelServidor.getTextArea()
-					.append(String.format("Cliente %s esta baixando o arquivo %s \n", cli.getNome(), arq.getNome()));
+					.append(String.format("Cliente %s esta baixando o arquivo %s \n", cliente, arq.getNome()));
+			return dados;
 		} catch (IOException e) {
 			PanelServidor.getTextArea()
 					.append(String.format("Erro durante o download do arquivo %s pelo usuario %s \n %s \n",
 							arq.getNome(), cli.getNome(), e.toString()));
+			throw new RuntimeException(e);
 		}
-		return dados;
 	}
 
 	@Override

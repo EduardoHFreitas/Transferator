@@ -9,15 +9,15 @@ import br.univel.jshare.comum.Arquivo;
 public class Monitorador implements Runnable {
 	private Thread threadMonitor;
 	private String diretorio;
-	
+
 	public static Monitorador monitorador;
-	
+
 	private Monitorador(String diretorio) {
 		this.diretorio = diretorio;
 		this.threadMonitor = new Thread(this);
 		this.threadMonitor.start();
 	}
-	
+
 	public static void publicarMinhaLista(final String dir) throws RemoteException {
 		File diretorio = new File(dir);
 		if (!diretorio.exists()) {
@@ -40,9 +40,11 @@ public class Monitorador implements Runnable {
 			PanelCliente.getListaArquivos().add(arquivo);
 		}
 
-		MainApp.getServidor().publicarListaArquivos(MainApp.getMeuCliente(), PanelCliente.getListaArquivos());
+		if (PanelCliente.getListaArquivos() != null) {
+			MainApp.getServidor().publicarListaArquivos(MainApp.getMeuCliente(), PanelCliente.getListaArquivos());
+		}
 	}
-	
+
 	@Override
 	public void run() {
 		Thread currentThread = Thread.currentThread();
@@ -63,7 +65,7 @@ public class Monitorador implements Runnable {
 	 * @return the monitorador
 	 */
 	public synchronized static Monitorador getMonitorador(String diretorio) {
-		if (monitorador == null){
+		if (monitorador == null) {
 			monitorador = new Monitorador(diretorio);
 		}
 		return monitorador;

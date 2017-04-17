@@ -48,7 +48,7 @@ public class MainApp extends JFrame implements Remote {
 
 	public static final int LARGURA = 600;
 	public static final int ALTURA = 500;
-	public static final String PATH = "C:\\Shared\\";
+	public static final String PATH = "C:/Shared/";
 
 	private JPanel jpTelaServidor = new PanelServidor();
 	private JPanel jpTelaCliente = new PanelCliente();
