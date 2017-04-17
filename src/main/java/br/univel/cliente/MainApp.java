@@ -49,7 +49,7 @@ public class MainApp extends JFrame implements Remote {
 
 	public static final int LARGURA = 600;
 	public static final int ALTURA = 500;
-	public static final String PATH = System.getProperty( "user.home" ) + "/Shared/";
+	public static final String PATH = System.getProperty("user.home") + "/Shared/";
 
 	private JPanel jpTelaServidor = new PanelServidor();
 	private JPanel jpTelaCliente = new PanelCliente();
@@ -83,11 +83,12 @@ public class MainApp extends JFrame implements Remote {
 		}
 
 		File diretorio = new File(PATH);
-		if (!diretorio.exists()){
+		if (!diretorio.exists()) {
 			diretorio.mkdir();
 		}
-		if (!diretorio.exists()){
-			PanelServidor.getTextArea().append(String.format("Erro ao criar o diretorio compartilhado %s \n", diretorio.getAbsolutePath()));
+		if (!diretorio.exists()) {
+			PanelServidor.getTextArea().append(
+					String.format("Erro ao criar o diretorio compartilhado %s \n", diretorio.getAbsolutePath()));
 		}
 
 		GridBagLayout gridBagLayout = new GridBagLayout();
