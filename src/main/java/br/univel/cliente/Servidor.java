@@ -122,7 +122,7 @@ public class Servidor implements Runnable, IServer {
 			}
 		});
 
-		PanelServidor.getTextArea().append(String.format("Alguem esta buscando por '%s'\n", query));
+		PanelServidor.getTextArea().append(String.format("Alguem esta buscando por '%s' \n", query));
 		return mapaAux;
 	}
 
@@ -133,7 +133,7 @@ public class Servidor implements Runnable, IServer {
 		try {
 			dados = Files.readAllBytes(path);
 			PanelServidor.getTextArea()
-					.append(String.format("Cliente %s esta baixando o arquivo %s", cli.getNome(), arq.getNome()));
+					.append(String.format("Cliente %s esta baixando o arquivo %s \n", cli.getNome(), arq.getNome()));
 		} catch (IOException e) {
 			PanelServidor.getTextArea()
 					.append(String.format("Erro durante o download do arquivo %s pelo usuario %s \n %s \n",
