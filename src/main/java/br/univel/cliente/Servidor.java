@@ -52,7 +52,7 @@ public class Servidor implements Runnable, IServer {
 
 			return true;
 		} catch (NoSuchObjectException e) {
-			e.printStackTrace();
+			PanelServidor.getTextArea().append("Erro ao desligar o servidor!\n" + e.toString() + "\n");
 		}
 		return false;
 	}
@@ -65,7 +65,7 @@ public class Servidor implements Runnable, IServer {
 			registry.rebind(IServer.NOME_SERVICO, meuServidor);
 			PanelServidor.getTextArea().append("Servidor Iniciado!\n");
 		} catch (RemoteException e) {
-			PanelServidor.getTextArea().append("Erro ao iniciar servidor: \n" + e.getMessage());
+			PanelServidor.getTextArea().append("Erro ao iniciar o servidor!\n" + e.toString() + "\n");
 		}
 	}
 
@@ -129,13 +129,17 @@ public class Servidor implements Runnable, IServer {
 	@Override
 	public byte[] baixarArquivo(Cliente cli, Arquivo arq) throws RemoteException {
 		Path path = Paths.get(arq.getPath());
+		byte[] dados = null;
 		try {
-			byte[] dados = Files.readAllBytes(path);
-				PanelServidor.getTextArea().append(String.format("Cliente %s esta baixando o arquivo %s", cli.getNome(), arq.getNome()));
-			return dados;
+			dados = Files.readAllBytes(path);
+			PanelServidor.getTextArea()
+					.append(String.format("Cliente %s esta baixando o arquivo %s", cli.getNome(), arq.getNome()));
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			PanelServidor.getTextArea()
+					.append(String.format("Erro durante o download do arquivo %s pelo usuario %s \n %s \n",
+							arq.getNome(), cli.getNome(), e.toString()));
 		}
+		return dados;
 	}
 
 	@Override

@@ -36,11 +36,11 @@ public class Md5Util {
 	 * @throws Exception
 	 */
 	public static String getMD5Checksum(String filename) {
-		byte[] b;
+		byte[] b = null;
 		try {
 			b = createChecksum(filename);
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			PanelServidor.getTextArea().append("Erro ao validar arquivo!\n" + e.toString() + "\n");
 		}
 		String result = "";
 

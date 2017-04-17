@@ -28,6 +28,7 @@ public class PanelServidor extends JPanel {
 		add(scrollPane, gbc_scrollPane);
 		
 		textArea = new JTextArea();
+		textArea.setEditable(false);
 		scrollPane.setViewportView(textArea);
 	}
 
