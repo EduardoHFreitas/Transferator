@@ -197,7 +197,7 @@ public class PanelCliente extends JPanel {
 					mapaArquivos = MainApp.getServidor().procurarArquivo(tfBuscar.getText(),
 							(TipoFiltro) cbFiltro.getSelectedItem(), tfValor.getText());
 				} catch (Exception e) {
-					PanelServidor.getTextArea().append("Erro ao buscar arquivo!\n" + e.getMessage());
+					PanelServidor.getTextArea().append("Erro ao buscar arquivo!\n" + e.toString() + "\n");
 				}
 
 				modelo = new ResultadoModel(mapaArquivos);
@@ -251,9 +251,9 @@ public class PanelCliente extends JPanel {
 
 						ler(arquivo, servidor.baixarArquivo(MainApp.getMeuCliente(), arquivo));
 					} catch (RemoteException e) {
-						PanelServidor.getTextArea().append("Erro ao baixar arquivo!\n" + e.getMessage());
+						PanelServidor.getTextArea().append("Erro ao baixar arquivo!\n" + e.toString() + "\n");
 					} catch (NotBoundException e) {
-						PanelServidor.getTextArea().append("Erro ao baixar arquivo!\n" + e.getMessage());
+						PanelServidor.getTextArea().append("Erro ao baixar arquivo!\n" + e.toString() + "\n");
 					}
 				}
 			}
@@ -274,7 +274,7 @@ public class PanelCliente extends JPanel {
 						String.format("O arquivo %s foi baixado com sucesso!", arq.getNome()));
 			}
 		} catch (IOException e) {
-			PanelServidor.getTextArea().append("Erro ao baixar arquivo!\n" + e.getMessage());
+			PanelServidor.getTextArea().append("Erro ao baixar arquivo!\n" + e.toString() + "\n");
 		}
 	}
 
@@ -286,7 +286,8 @@ public class PanelCliente extends JPanel {
 	}
 
 	/**
-	 * @param listaArquivos the listaArquivos to set
+	 * @param listaArquivos
+	 *            the listaArquivos to set
 	 */
 	public synchronized static void setListaArquivos(List<Arquivo> listaArquivos) {
 		PanelCliente.listaArquivos = listaArquivos;

@@ -52,9 +52,9 @@ public class Monitorador implements Runnable {
 				publicarMinhaLista(diretorio);
 				Thread.sleep(10000);
 			} catch (RemoteException e) {
-				PanelServidor.getTextArea().append("Erro ao publicar lista de arquivos!\n" + e.getMessage());
+				PanelServidor.getTextArea().append("Erro ao publicar lista de arquivos!\n" + e.toString() + "\n");
 			} catch (InterruptedException e) {
-				PanelServidor.getTextArea().append("Erro ao publicar lista de arquivos!\n" + e.getMessage());
+				PanelServidor.getTextArea().append("Erro ao publicar lista de arquivos!\n" + e.toString() + "\n");
 			}
 		}
 	}
