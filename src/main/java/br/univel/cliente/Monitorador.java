@@ -20,13 +20,21 @@ public class Monitorador implements Runnable {
 
 	public static void publicarMinhaLista(final String dir) throws RemoteException {
 		File diretorio = new File(dir);
-		if (!diretorio.exists()) {
-			diretorio.mkdir();
-		}
 		File arquivos[] = diretorio.listFiles();
+
+		if (!diretorio.exists()) {
+			PanelServidor.getTextArea().append(
+					String.format("Erro ao criar o diretorio compartilhado %s \n", diretorio.getAbsolutePath()));
+			return;
+		}
 
 		PanelCliente.getListaArquivos().clear();
 
+		if (arquivos == null) {
+			PanelServidor.getTextArea().append(String.format("Nenhum arquivo encontrado na pasta compartilhada %s\n",
+					diretorio.getAbsolutePath()));
+			return;
+		}
 		for (int i = 0; i < arquivos.length; i++) {
 			File file = arquivos[i];
 			Arquivo arquivo = new Arquivo();
